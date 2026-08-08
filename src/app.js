@@ -20,6 +20,17 @@ app.get("/user", async (req, res, next) => {
   }
 });
 
+// GET any user findOne - if duplicate documents present in User model
+app.get("/duplicate", async (req, res) => {
+  const userEmail = req.body.email;
+  try {
+      const findOneUser = await User.findOne({ email: userEmail });
+      res.send(findOneUser);
+  } catch (error) {
+    res.status(404).send("Something went wrong!!!");
+  }
+});
+
 // GET all users feed from database
 
 app.get('/feed', async (req, res) => {
