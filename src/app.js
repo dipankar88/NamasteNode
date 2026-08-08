@@ -8,11 +8,8 @@ app.use(express.json());
 // GET user details using email
 app.get("/user", async (req, res, next) => {
   const userEmail = req.body.email;
-  console.log(req.body);
-
   try {
     const users = await User.find({ email: userEmail });
-    console.log(users);
     if (users.length === 0) {
       res.status(404).send("User not found!!");
     } else {
@@ -23,17 +20,27 @@ app.get("/user", async (req, res, next) => {
   }
 });
 
-app.post('/signup', async (req, res, next)=>{
-  console.log(req.body);
-  const user = new User(req.body);
+// GET all users feed from database
 
+app.get('/feed', async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (error) {
+    res.status(404).send("Something went worng!!");
+  }
+})
+
+// POST : /signup API to save data in database
+
+app.post('/signup', async (req, res, next)=>{
+  const user = new User(req.body);
   try{
     await user.save();
     res.send("User data saved successfully!!");
   }catch (err) {
     res.status(400).send('Error saving the user data : '+ err.message);
   }
-  
 });
 
 connectDB()
