@@ -5,6 +5,24 @@ const {connectDB} = require("./config/database");
 const User = require('./module/user');
 app.use(express.json());
 
+// GET user details using email
+app.get("/user", async (req, res, next) => {
+  const userEmail = req.body.email;
+  console.log(req.body);
+
+  try {
+    const users = await User.find({ email: userEmail });
+    console.log(users);
+    if (users.length === 0) {
+      res.status(404).send("User not found!!");
+    } else {
+      res.send(users);
+    }
+  } catch (error) {
+    res.status(400).send("Something went wrong!: ", error.message);
+  }
+});
+
 app.post('/signup', async (req, res, next)=>{
   console.log(req.body);
   const user = new User(req.body);
