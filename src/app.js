@@ -67,6 +67,19 @@ app.post('/signup', async (req, res, next)=>{
   }
 });
 
+// DELETE API to delete a user
+
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    if(!userId) return res.status(404).send("User not available!!!");
+    const user = await User.findByIdAndDelete(userId);
+    res.send("User deleted successfully !!!");
+  } catch (error) {
+    res.status(404).send("Something went wrong.");
+  }
+});
+
 connectDB()
 .then(() => {
   console.log("DB connection estublished!!");
