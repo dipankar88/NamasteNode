@@ -93,6 +93,28 @@ app.patch("/user", async (req, res) => {
   }
 });
 
+// PATCH api - to update any properties of a specific user document using emailId
+
+app.patch("/updateByEmail", async (req, res) => {
+  const data = req.body;
+  console.log(data);
+  try {
+    const user = await User.findOneAndUpdate(
+      { email: data.email},
+      { firstName: data.firstName },
+      { 
+        returnDocument: "before",
+        new: true
+      }
+    );
+    console.log(user);
+    if(!user) return res.status(404).send("User not available!!!");
+    res.send("Data updated successfully!!");
+  } catch (error) {
+    res.status(404).send("Something went wrong: " + error.message);
+  }
+});
+
 connectDB()
 .then(() => {
   console.log("DB connection estublished!!");
