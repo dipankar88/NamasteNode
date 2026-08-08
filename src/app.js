@@ -31,6 +31,19 @@ app.get("/duplicate", async (req, res) => {
   }
 });
 
+// GET any user findById - if duplicate documents present in User model
+app.get("/userbyid/:id", async (req, res) => {
+  const userId = req.params.id;
+  console.log(userId);
+  try {
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).send("User not found");
+      res.send(user);
+  } catch (error) {
+    res.status(404).send("Something went wrong!!!");
+  }
+});
+
 // GET all users feed from database
 
 app.get('/feed', async (req, res) => {
