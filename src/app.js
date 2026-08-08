@@ -80,6 +80,19 @@ app.delete("/user", async (req, res) => {
   }
 });
 
+// PATCH api - to update any properties of a specific user document
+
+app.patch("/user", async (req, res) => {
+  const data = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(data.userId, data, { returnDocument: 'before' });
+    console.log(user);
+    res.send("Data updated successfully!!");
+  } catch (error) {
+    res.status(404).send("Something went wrong: " + error.message);
+  }
+});
+
 connectDB()
 .then(() => {
   console.log("DB connection estublished!!");
