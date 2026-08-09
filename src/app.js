@@ -125,6 +125,20 @@ app.patch("/updateByEmail", async (req, res) => {
   }
 });
 
+// login API
+app.post('/login', async (req, res)=>{
+  try {
+      const { email, password } = req.body;
+      const user = await User.findOne({ email: email});
+      if(!user) throw new Error("Invalid user credentials!");
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if(!isValidPassword) throw new Error("Invalid user credentials!");
+      res.send("User logged in successfully!!");
+  } catch (error) {
+    res.status(400).send("ERROR: " + error.message);
+  }
+})
+
 connectDB()
 .then(() => {
   console.log("DB connection estublished!!");
