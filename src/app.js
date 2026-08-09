@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
-
+const { validateSignUpData } = require('./utils/validation');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const {connectDB} = require("./config/database");
 const User = require('./module/user');
 app.use(express.json());
@@ -58,8 +60,16 @@ app.get('/feed', async (req, res) => {
 // POST : /signup API to save data in database
 
 app.post('/signup', async (req, res, next)=>{
-  const user = new User(req.body);
   try{
+    validateSignUpData(req);
+    const {firstName, lastName, email, password } = req.body;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password: passwordHash
+    });
     await user.save();
     res.send("User data saved successfully!!");
   }catch (err) {
