@@ -1,11 +1,16 @@
 const express = require('express');
 const app = express();
-const { validateSignUpData } = require('./utils/validation');
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const saltRounds = 10;
+const { validateSignUpData } = require('./utils/validation');
 const {connectDB} = require("./config/database");
 const User = require('./module/user');
+
 app.use(express.json());
+//express give a way to attach cookie 
+app.use(cookieParser());
 
 // GET user details using email
 app.get("/user", async (req, res, next) => {
@@ -133,11 +138,33 @@ app.post('/login', async (req, res)=>{
       if(!user) throw new Error("Invalid user credentials!");
       const isValidPassword = await bcrypt.compare(password, user.password);
       if(!isValidPassword) throw new Error("Invalid user credentials!");
+
+      const token = await jwt.sign({ _id: user._id }, "SECRET@123");
+      if(!token) throw new Error("Invalid token !!");
+
+      res.cookie("token", token);
       res.send("User logged in successfully!!");
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
   }
-})
+});
+
+// profile API - User profile
+app.get('/profile', async (req, res)=>{
+  try {
+
+    const cookies = req.cookies;
+    const { token } = cookies;
+    if(!token) throw new Error("Invalid Token!!!");
+
+    const decodedMessage = await jwt.verify(token, "SECRET@123")
+    const { _id } = decodedMessage;
+    const user = await User.findById(_id);
+    res.send(user);
+  } catch (error) {
+    res.status(400).send("ERROR: " + error.message);
+  }
+});
 
 connectDB()
 .then(() => {
