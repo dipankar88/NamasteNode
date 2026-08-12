@@ -137,10 +137,11 @@ app.post('/login', async (req, res)=>{
       const { email, password } = req.body;
       const user = await User.findOne({ email: email});
       if(!user) throw new Error("Invalid user credentials!");
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await user.validateUserPassword(password);
       if(!isValidPassword) throw new Error("Invalid user credentials!");
 
-      const token = await jwt.sign({ _id: user._id }, "SECRET@123");
+      // const token = await jwt.sign({ _id: user._id }, "SECRET@123", { expiresIn: '0h'});
+      const token = await user.getJWT();
       if(!token) throw new Error("Invalid token !!");
 
       res.cookie("token", token);
@@ -159,10 +160,19 @@ app.get('/profile', userAuth, async (req, res)=>{
     // const decodedMessage = await jwt.verify(token, "SECRET@123")
     // const { _id } = decodedMessage;
     // const user = await User.findById(_id);
-    
+
     res.send(req.user);
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
+  }
+});
+
+app.post('/sendConnectionRequest', userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user.firstName + " sent connection request!!");
+  } catch (error) {
+    res.status(404).send("ERROR: " + error.message);
   }
 });
 
