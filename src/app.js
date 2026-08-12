@@ -5,8 +5,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const saltRounds = 10;
 const { validateSignUpData } = require('./utils/validation');
-const {connectDB} = require("./config/database");
+const { connectDB } = require("./config/database");
 const User = require('./module/user');
+const { userAuth } = require('./middlewares/auth');
 
 app.use(express.json());
 //express give a way to attach cookie 
@@ -150,17 +151,16 @@ app.post('/login', async (req, res)=>{
 });
 
 // profile API - User profile
-app.get('/profile', async (req, res)=>{
+app.get('/profile', userAuth, async (req, res)=>{
   try {
-
-    const cookies = req.cookies;
-    const { token } = cookies;
-    if(!token) throw new Error("Invalid Token!!!");
-
-    const decodedMessage = await jwt.verify(token, "SECRET@123")
-    const { _id } = decodedMessage;
-    const user = await User.findById(_id);
-    res.send(user);
+    // const cookies = req.cookies;
+    // const { token } = cookies;
+    // if(!token) throw new Error("Invalid Token!!!");
+    // const decodedMessage = await jwt.verify(token, "SECRET@123")
+    // const { _id } = decodedMessage;
+    // const user = await User.findById(_id);
+    
+    res.send(req.user);
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
   }
