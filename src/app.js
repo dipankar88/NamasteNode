@@ -1,10 +1,8 @@
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
-const bcrypt = require('bcrypt');
+// const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const saltRounds = 10;
-const { validateSignUpData } = require('./utils/validation');
 const { connectDB } = require("./config/database");
 const User = require('./module/user');
 const { userAuth } = require('./middlewares/auth');
@@ -13,6 +11,13 @@ app.use(express.json());
 //express give a way to attach cookie 
 app.use(cookieParser());
 
+const authRouter = require('./routers/auth');
+const profileRouter = require('./routers/profile');
+const requestRouter = require('./routers/request');
+
+app.use('/', authRouter);
+app.use('/', profileRouter);
+app.use('/', requestRouter);
 // GET user details using email
 app.get("/user", async (req, res, next) => {
   const userEmail = req.body.email;
@@ -63,26 +68,6 @@ app.get('/feed', async (req, res) => {
   }
 })
 
-// POST : /signup API to save data in database
-
-app.post('/signup', async (req, res, next)=>{
-  try{
-    validateSignUpData(req);
-    const {firstName, lastName, email, password } = req.body;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password: passwordHash
-    });
-    await user.save();
-    res.send("User data saved successfully!!");
-  }catch (err) {
-    res.status(400).send('Error saving the user data : '+ err.message);
-  }
-});
-
 // DELETE API to delete a user
 
 app.delete("/user", async (req, res) => {
@@ -128,51 +113,6 @@ app.patch("/updateByEmail", async (req, res) => {
     res.send("Data updated successfully!!");
   } catch (error) {
     res.status(404).send("Something went wrong: " + error.message);
-  }
-});
-
-// login API
-app.post('/login', async (req, res)=>{
-  try {
-      const { email, password } = req.body;
-      const user = await User.findOne({ email: email});
-      if(!user) throw new Error("Invalid user credentials!");
-      const isValidPassword = await user.validateUserPassword(password);
-      if(!isValidPassword) throw new Error("Invalid user credentials!");
-
-      // const token = await jwt.sign({ _id: user._id }, "SECRET@123", { expiresIn: '0h'});
-      const token = await user.getJWT();
-      if(!token) throw new Error("Invalid token !!");
-
-      res.cookie("token", token);
-      res.send("User logged in successfully!!");
-  } catch (error) {
-    res.status(400).send("ERROR: " + error.message);
-  }
-});
-
-// profile API - User profile
-app.get('/profile', userAuth, async (req, res)=>{
-  try {
-    // const cookies = req.cookies;
-    // const { token } = cookies;
-    // if(!token) throw new Error("Invalid Token!!!");
-    // const decodedMessage = await jwt.verify(token, "SECRET@123")
-    // const { _id } = decodedMessage;
-    // const user = await User.findById(_id);
-
-    res.send(req.user);
-  } catch (error) {
-    res.status(400).send("ERROR: " + error.message);
-  }
-});
-
-app.post('/sendConnectionRequest', userAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    res.send(user.firstName + " sent connection request!!");
-  } catch (error) {
-    res.status(404).send("ERROR: " + error.message);
   }
 });
 
